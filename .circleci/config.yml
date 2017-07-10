@@ -1,0 +1,22 @@
+version: 2
+jobs:
+  build:
+    docker:
+    - image: docker
+    working_directory: ~/build
+    steps:
+    - checkout
+    - setup_remote_docker
+    - run:
+        name: Build Docker image
+        command: |
+          docker build -t aknudsen/fluentd-k8s-es:$CIRCLE_SHA1 .
+          docker tag aknudsen/fluentd-k8s-es:$CIRCLE_SHA1 aknudsen/fluentd-k8s-es:latest
+    - deploy:
+        name: Push Docker image
+        command: |
+          docker login -u $DOCKERHUB_USER -p $DOCKERHUB_PASSWORD
+          docker tag aknudsen/fluentd-k8s-es:$CIRCLE_SHA1 aknudsen/fluentd-k8s-es:1.23
+          docker push aknudsen/fluentd-k8s-es:$CIRCLE_SHA1
+          docker push aknudsen/fluentd-k8s-es:latest
+          docker push aknudsen/fluentd-k8s-es:1.23
